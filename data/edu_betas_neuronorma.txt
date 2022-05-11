@@ -1,0 +1,5 @@
+test	beta
+digitsf	0.21327
+digitsb	0.21298
+tmta	-0.21832
+tmtb	-0.2732
