@@ -1,0 +1,452 @@
+library(shiny)
+library(shinyalert)
+library(shinydashboard)
+require(DT)
+
+ui<-dashboardPage(
+  dashboardHeader(title = 'Unidad de Demencias'),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem('Home', tabName = 'home', icon = icon('fas fa-home')),
+      menuItem('Tests administrados', tabName = 'rawdata', icon = icon('fas fa-brain')),
+      menuItem('Correcciones', tabName = 'adjdata', icon = icon('fas fa-table')),
+      menuItem('Resumen', tabName = 'resumen', icon = icon('list'))
+    ),
+    br(),
+    h5('Datos del paciente:', style = 'text-align: center; font-weight: bold'),
+    br(),
+    numericInput('nhc', 'NHC: ', NA_real_),
+    dateInput('fecha_np', 'Fecha de la visita: ', format = 'dd-mm-yyyy'),
+    sliderInput('edad', 'Edad: ', NA_real_, min = 18, max = 100, value = 65, step = 1),
+    selectInput('sexo', 'Sexo: ', c('Femenino', 'Masculino')), 
+    sliderInput('edu', 'Educacion: ', NA_real_, min = 0, max = 20, value = 8, step = 1),
+    selectInput('dominancia', 'Dominancia: ', c('Diestro', 'Zurdo', 'Ambidiestro')), 
+    textInput('neuropsicologa', 'Neuropsicologo/a:'),
+    textInput('doctor', 'Doctor/a:')
+    ),
+  dashboardBody(
+    tags$head(tags$script(HTML("
+    // Enable navigation prompt
+    window.onbeforeunload = function() {
+    return 'Your changes will be lost!';
+    };
+                               ")
+                          )
+              ),
+    tabItems(
+      tabItem('home',
+              br(),
+              br(),
+              h1("Unidad de Demencias", style = 'text-align: center'),
+              br(),
+              div(img(src = 'logo.png', width='400', height='100'), style = 'text-align: center'),
+              br(),
+              h2("Servicio de Neuropsicologia", style = 'text-align: center'),
+              br(),
+              br(),
+              div('Staff', style = 'color: black; font-size: 200%; text-align: center'),
+              br(),
+              div('Diana Liebana Gutierrez', style = 'color: black; font-size: 120%; text-align: center'), 
+              br(),
+              div('Belen Guiterrez Iglesias',  style = 'color: black; font-size: 120%; text-align: center'),
+              br(),
+              br(),
+              br(),
+              div(img(src = 'logo2.png', width='185', height='106'), style = 'text-align: center'),
+              br(),
+              div('Desarrollado por:',  style = 'color: black; font-size: 110%; text-align: center'),
+              div('Joan Jimenez-Balado',  style = 'color: black; font-size: 110%; text-align: center'),
+              div('joan.balado@gmail.com',  style = 'color: black; font-size: 110%; text-align: center'),
+              br(),
+              br(),
+              div('Version 1.1',  style = 'color: black; font-size: 110%; text-align: center'),
+              br(),
+              br(),
+              br(),
+              br(), 
+              br()
+      ),
+      
+      
+      tabItem('rawdata',
+              fluidPage(
+                useShinyalert(),
+                tags$head(tags$style(HTML("
+                                #final_text {
+                                  text-align: center;
+                                }
+                                div.box-header {
+                                  text-align: center;
+                                }
+                                h4 {
+                                  text-align: center;
+                                }
+                                "))),
+                column(3, 
+                       box( title = span(icon('fas fa-database'), 'Memoria Audioverbal'), status = 'primary', solidHeader = T, width = 14,
+                            br(), 
+                            h5('AVL:', style = 'text-align: center; font-weight: bold; font-size: 1.2em;'),
+                            br(),
+                            numericInput('a1', 'A-1:', NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('a2', 'A-2:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('a3','A-3:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('a4','A-4:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('a5','A-5:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('b','B-list:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('a6','A-6:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('a7','A-7:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('r','R:', NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('ras','RAS:', NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('raf','RAF:', NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('recb','Falsos Positivos Lista B:', NA_real_, min = 0, max = 15, step = 1),
+                            br()
+                       )
+                ),
+                column(3,
+                       box( title = span(icon('fas fa-filter'), 'Span Verbal', br(), br(), icon('fas fa-american-sign-language-interpreting'), 'Praxias Ideomotoras'), status = 'primary', solidHeader = T, width = 14,
+                            br(),
+                            h5('DIGITOS Y CONTROL MENTAL:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(), 
+                            numericInput('digitsf', 'Digitos directos: ', NA_real_,  min = 0, max = 9, step = 1),
+                            numericInput('digitsb', 'Digitos inversos: ', NA_real_,  min = 0, max = 9, step = 1),
+                            numericInput('cm', 'Control mental WMS-III: ', NA_real_, min = 0, step = 1),
+                            br(),
+                            h5('PRAXIAS:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(), 
+                            numericInput('imitd', 'Praxias imitacion derecha: ', NA_real_, min = 0, max = 10, step = 1),
+                            numericInput('imiti', 'Praxias imitacion izquierda: ', NA_real_, min = 0, max = 10, step = 1),
+                            numericInput('imitb', 'Praxias imitacion bilaterales: ', NA_real_, min = 0, max = 8, step = 1),
+                            numericInput('coord', 'Coordinacion reciproca: ', NA_real_, min = 0, max = 4, step = 1),
+                            numericInput('secmot', 'Secuencias motoras: ', NA_real_, min = 0, max = 4, step = 1),
+                            numericInput('secgraf', 'Secuencias graficas: ', NA_real_, min = 0, max = 4, step = 1),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br()
+                       )
+                ),
+                column(3, 
+                       box( title = span(icon('fas fa-pencil-ruler'), ' Fc. Visoconstructivas', br(), br(), icon('far fa-images'), 'Memoria Visual'), status = 'primary', solidHeader = T, width = 14,
+                            br(),
+                            h5('CUBOS, RELOJ, FCR:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(),
+                            numericInput('cubos','Cubos:',  NA_real_, min = 0, max = 68, step = 1),
+                            numericInput('reloj','Reloj:',  NA_real_),
+                            numericInput('fcrc', 'FCR-Copia:', NA_real_, min = 0, max = 36, step = 1),
+                            numericInput('fcrt', 'FCR-Tiempo:',  NA_real_, min = 0, max = 1000, step = 1),
+                            br(),
+                            h5('RECUERDO FCR:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(),
+                            numericInput('fcrir','FCR-Recuerdo Inmediato:',  NA_real_, min = 0, max = 36, step = 1),
+                            numericInput('fcrdr','FCR-Recuerdo Diferido:',  NA_real_, min = 0, max = 36, step = 1),
+                            br(),
+                            h5('RECONOCIMIENTO FCR:', style = 'text-align: center; font-weight: bold; font-size: 1.0em;'),
+                            br(),
+                            numericInput('fcrtp','Verdaderos Positivos:',  NA_real_, min = 0, max = 36, step = 1),
+                            numericInput('fcrfp','Falsos Positivos:',  NA_real_, min = 0, max = 36, step = 1),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br()
+                       )
+                ),
+                column(3,  
+                       box( title = span(icon('fas fa-comment'), ' Lenguaje'), status = 'primary', solidHeader = T, width = 14,
+                            br(),
+                            h5('DENOMINACION:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(),
+                            numericInput('bnt','BNT-30 items:',  NA_real_, min = 0, max = 30, step = 1),
+                            numericInput('bnte','BNT-30 errores visoperceptivos:',  NA_real_, min = 0, max = 30, step = 1),
+                            numericInput('dimag','Denominacion BCN:',  NA_real_, min = 0, max = 14, step = 1),
+                            br(),
+                            h5('COMPRENSION:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(),
+                            numericInput('comord', 'Comprension de ordenes:', NA_real_, min = 0, max = 15, step = 1),
+                            br(),
+                            h5('REPETICION:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(),
+                            numericInput('reppal', 'Palabras:', NA_real_, min = 0, max = 10, step = 1),
+                            numericInput('repfra', 'Frases:', NA_real_, min = 0, max = 60, step = 1),
+                            numericInput('replog', 'Logatomos:', NA_real_, min = 0, max = 8, step = 1),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(), 
+                            br(),
+                            br(),
+                            br(), 
+                            br()
+                       )
+                )
+              ),
+              br(),
+              br(),
+              br(),
+              fluidRow(
+                column(3, 
+                       box(title = span(icon('fas fa-cat'), 'Fluencias Verbales'), status = 'primary', solidHeader = T, width = 14,
+                           br(),
+                           h5('LETRA P:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                           br(),
+                           numericInput('p','Letra P:',  NA_real_, min = 0, max = 50, step = 1),
+                           numericInput('prep','Letra P repeticiones:',  NA_real_, min = 0, max = 50, step = 1),
+                           numericInput('pint','Letra P intrusiones:',  NA_real_, min = 0, max = 50, step = 1),
+                           br(),
+                           h5('ANIMALES:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                           br(),
+                           numericInput('ecat','Animales:',  NA_real_, min = 0, max = 50, step = 1),
+                           numericInput('ecatrep','Animales repeticiones:',  NA_real_, min = 0, max = 50, step = 1),
+                           numericInput('ecatint','Animales intrusiones:',  NA_real_, min = 0, max = 50, step = 1),
+                           br(),
+                           h5('FAS:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                           br(),
+                           numericInput('f','Letra F:',  NA_real_, min = 0, max = 50, step = 1),
+                           numericInput('a','Letra A:',  NA_real_, min = 0, max = 50, step = 1),
+                           numericInput('s','Letra S:',  NA_real_, min = 0, max = 50, step = 1),
+                           br(),
+                           br(),
+                           br(),
+                           br(),
+                           br(),
+                           br(),
+                           br(),
+                           br(), 
+                           br(),
+                           br(),
+                           br(), 
+                           br(),
+                           br()
+                           )
+                       ),
+                column(3, 
+                       box( title = span(icon('fas fa-eye'), 'Fc. Visoesperceptivas', br(), br(), icon('far fa-clock'), 'Fc. Visoespaciales'), status = 'primary', solidHeader = T, width = 14,
+                            br(),
+                            h5('FUNCIONES VISOPERCEPTIVAS:', style = 'text-align: center; font-weight: bold; font-size: 1.1em;'),
+                            br(),
+                            selectInput('jaeger','Jaeger:', c(NA_character_, '1+', '1', '2', '3', '5', '7', '10', '16'), NA_character_),
+                            numericInput('15obj','15-Objetos:',  NA_real_, min = 0, max = 15, step = 1),
+                            numericInput('fsl', 'FSL:', NA_real_, min = 0, max = 14, step = 1),
+                            numericInput('hooper', 'Hooper:', NA_real_, min = 0, max = 30, step = 1),
+                            br(),
+                            h5('FUNCIONES VISOESPACIALES:', style = 'text-align: center; font-weight: bold; font-size: 1.1em'),
+                            br(),
+                            numericInput('jlo','JLO:',  NA_real_, min = 0, max = 30, step = 1),
+                            numericInput('clockr','Lectura relojes:',  NA_real_, min = 0, max = 15, step = 1),
+                            br(),
+                            h5('VOSP:', style = 'text-align: center; font-weight: bold; font-size: 1.1em'),
+                            br(),
+                            numericInput('deciobj','Decision objeto:',  NA_real_, min = 0, max = 20, step = 1),
+                            numericInput('silprog','Siluetas progresivas:',  NA_real_, min = 0, max = 20, step = 1),
+                            numericInput('discpos', 'Discriminacion posicion:', NA_real_, min = 0, max = 20, step = 1),
+                            numericInput('locnum', 'Localizacion numero:', NA_real_, min = 0, max = 10, step = 1),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br()
+                       )
+                ),
+                column(3, 
+                       box( title = span(icon('fas fa-filter'), 'Atencion I', br(), br(), icon('fas fa-code-branch'), 'Funciones Ejecutivas I'), status = 'primary', solidHeader = T, width = 14,
+                            br(),
+                            h5('STROOP:', style = 'text-align: center; font-weight: bold; font-size: 1.0em'),
+                            br(), 
+                            numericInput('stroopp','Stroop-Palabra:',  NA_real_, min = 0, max = 200, step = 1),
+                            numericInput('strooppe','Stroop-Palabra errores:',  NA_real_, min = 0, max = 20, step = 1),
+                            numericInput('stroopc','Stroop-Color:',  NA_real_, min = 0, max = 200, step = 1),
+                            numericInput('stroopce','Stroop-Color errores:',  NA_real_, min = 0, max = 20, step = 1),
+                            numericInput('strooppc', 'Stroop-Palabra/Color:', NA_real_, min = 0, max = 200, step = 1),
+                            numericInput('strooppce', 'Stroop-Palabra/Color errores:', NA_real_, min = 0, max = 20, step = 1),
+                            br(),
+                            h5('TRAIL MAKING TEST:', style = 'text-align: center; font-weight: bold; font-size: 1.0em'),
+                            br(),
+                            numericInput('tmta','TMT-A segundos:',  NA_real_, min = 0, max = 300, step = 1),
+                            numericInput('tmtae','TMT-A errores:',  NA_real_, min = 0, max = 20, step = 1),
+                            numericInput('tmtb','TMT-B segundos:',  NA_real_, min = 0, max = 800, step = 1),
+                            numericInput('tmtbe','TMT-B errores:',  NA_real_, min = 0, max = 00, step = 1),
+                            br(),
+                            h5('OTROS TESTS:', style = 'text-align: center; font-weight: bold; font-size: 1.0em'),
+                            br(),
+                            numericInput('calc','Calculo correctos:',  NA_real_, min = 0, max = 10, step = 1),
+                            numericInput('simil','Semejanzas correctos:',  NA_real_, min = 0, max = 26, step = 1),
+                       )
+                ),
+                column(3, 
+                       box( title = span(icon('fas fa-filter'), 'Atencion II', br(), br(), icon('fas fa-code-branch'), 'Funciones Ejecutivas II'), status = 'primary', solidHeader = T, width = 14,
+                            h5('PRUEBA DE LAS A:', style = 'text-align: center; font-weight: bold; font-size: 1.0em'),
+                            br(),
+                            numericInput('ascor','Aciertos:',  NA_real_, min = 0, max = 18, step = 1),
+                            numericInput('ascoro','Omisiones:',  NA_real_, min = 0, max = 18, step = 1),
+                            numericInput('ascorp','Perseveraciones:',  NA_real_, min = 0, max = 20, step = 1),
+                            br(),
+                            h5('SDMT-ORAL:', style = 'text-align: center; font-weight: bold; font-size: 1.0em'),
+                            br(),
+                            numericInput('sdmta','SDMTo correctos:',  NA_real_, min = 0, max = 110, step = 1),
+                            numericInput('sdmte','SDMTo errores:',  NA_real_, min = 0, max = 20, step = 1),
+                            br(),
+                            h5('TOWER OF LONDON:', style = 'text-align: center; font-weight: bold; font-size: 1.0em'),
+                            br(), 
+                            numericInput('tolcor','Total correctos:',  NA_real_, min = 0, max = 10, step = 1),
+                            numericInput('tolmov','Total movimientos:',  NA_real_, min = 0, max = 145, step = 1),
+                            numericInput('tollat','Tiempo latencia:',  NA_real_, min = 0, max = 2000, step = 1),
+                            numericInput('toleje','Tiempo ejecucion:',  NA_real_, min = 0, max = 2000, step = 1),
+                            numericInput('tolres','Tiempo resolucion:',  NA_real_, min = 0, max = 2000, step = 1),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br()
+                       )
+                )
+              ),
+              br(), 
+              br(), 
+              br(),
+              fluidRow(
+                column(3, box(title = span(icon('fas fa-theater-masks'), 'Conducta'), status = 'warning', solidHeader = T, width = 14,
+                              selectInput('colabora', 'El paciente colabora: ', c('Si', 'No')),
+                              checkboxGroupInput('obervaciones', 'Se observa:', choices = list('Enlentecimiento',
+                                                                                               'Deshinibicion',
+                                                                                               'Depresion',
+                                                                                               'Ansiedad')
+                              ),
+                              textAreaInput('comments_cond', 'Comentarios Conducta:', width='100%', height='300px', value='')
+                              )
+                       ),
+                column(3, box(title = span(icon('fas fa-comments'), 'Comentarios lenguaje espontaneo'), status = 'warning', solidHeader = T, width = 14,
+                              textAreaInput('comments_leng', 'Describir lenguaje espontaneo:', width='100%', height='300px', value=''))
+                ),
+                column(3, box(title = span(icon('fas fa-briefcase'), 'Otros Tests Administrados'), status = 'info', solidHeader = T, width = 14,
+                              textAreaInput('comments_tests', 'Introducir 1 test por linia: Test, PD, PT', width='100%', height='300px', value=''))
+                )
+              )
+      ),
+      tabItem('adjdata', 
+              fluidPage(
+                fluidRow(
+                  column(4,
+                         h4(icon('fas fa-database'), 'Curva Aprendizaje AVL'),
+                         br(),
+                         dataTableOutput('correccion_avl_1')
+                  ),
+                  column(4,
+                         h4(icon('fas fa-database'), 'Puntuaciones Derivadas AVL'),
+                         br(),
+                         dataTableOutput('correccion_avl_2')
+                  ),
+                  column(4,
+                         h4(icon('fas fa-filter'), 'Span Verbal y Praxias Ideomotoras', icon('fas fa-american-sign-language-interpreting')),
+                         br(),
+                         dataTableOutput('correccion_digprx')
+                  )
+                ),
+                br(),
+                br(),
+                br(),
+                fluidRow(
+                  column(4,
+                         h4(icon('fas fa-pencil-ruler'), 'Fc Viso-Constructivas y Memoria Visual', icon('far fa-images')),
+                         br(),
+                         dataTableOutput('correccion_visoconst')
+                  ),
+                  column(4,
+                         h4(icon('fas fa-comment'), 'Lenguaje y Fluencias Verbales', icon('fas fa-cat')),
+                         br(),
+                         dataTableOutput('correccion_lenguaje')
+                  ),
+                  column(4,
+                         h4(icon('fas fa-eye'), 'Fc. Visoperceptivas y Visoespaciales', icon('far fa-clock')),
+                         br(),
+                         dataTableOutput('correccion_visospatial')
+                  )
+                ),
+                br(),
+                br(),
+                br(),
+                fluidRow(
+                  column(4,
+                         h4(icon('fas fa-filter'), 'Atencion y Funciones Ejecutivas I', icon('fas fa-code-branch')),
+                         br(),
+                         dataTableOutput('correccion_ffee1')
+                  ),
+                  column(4,
+                         h4(icon('fas fa-filter'), 'Atencion y Funciones Ejecutivas II', icon('fas fa-code-branch')),
+                         br(),
+                         dataTableOutput('correccion_ffee2')
+                  ),
+                  br(),
+                  br()
+                )
+              )
+      ),
+      tabItem('resumen',
+              fluidPage(
+                fluidRow(
+                  column(2, 
+                         box(title = span(icon('far fa-list-alt'), 'Generar Resumen', style = 'text-align: center'), status = 'primary', solidHeader = T, width = 12,
+                             actionButton('resumengo', span(icon('fas fa-sync-alt'),'Actualizar Datos', style = 'text-align: center; font-weight: bold; font-size: 1.0em' )),
+                             br(), 
+                             br(),
+                             h4(icon('fas fa-file-alt'), 'INFORMES:', style = 'text-align: center; font-weight: bold; font-size: 1.2em'),
+                             br(), 
+                             selectInput('report_plots', 'Incluir graficos en informe?', c('No', 'Si')), 
+                             h5('Elegir el directorio:', style = 'text-align: left; font-weight: bold; font-size: 1.0em'),
+                             downloadButton('report', 'Descargar Informe'),
+                             br(),
+                             h5('Guardar en /reports:', style = 'text-align: left; font-weight: bold; font-size: 1.0em'),
+                             actionButton('report2', span(icon('far fa-folder-open'), 'Descargar Informe')),
+                             br(), 
+                             br(),
+                             br(),
+                             h4(icon('fas fa-file-csv'), 'DATOS:', style = 'text-align: center; font-weight: bold; font-size: 1.2em'),
+                             br(),
+                             h5('Elegir el directorio:', style = 'text-align: left; font-weight: bold; font-size: 1.0em'),
+                             downloadButton('download_csv', 'Descargar CSV'),
+                             br(), 
+                             h5('Guardar en /csv:', style = 'text-align: left; font-weight: bold; font-size: 1.0em'), 
+                             actionButton('download_csv2', span(icon('far fa-folder-open'), 'Descargar CSV'))
+                         )),
+                  column(6,
+                         box(title = span(icon('fas fa-chart-line'), 'Perfil Neuropsicologico', style = 'text-align: center'), status = 'primary', solidHeader = T, width = 12,
+                             br(),
+                             br(),
+                             br(),
+                             plotOutput('resumenplot'),
+                             br(), 
+                             br(),
+                             br()
+                         ),
+                  ),
+                  column(4, 
+                         infoBoxOutput('memverbinfo', width = 6),
+                         infoBoxOutput('memvisuinfo', width = 6),
+                         infoBoxOutput('atencioninfo', width = 6),
+                         infoBoxOutput('prxinfo', width = 6),
+                         infoBoxOutput('lenginfo', width = 6),
+                         infoBoxOutput('fluverbinfo', width = 6),
+                         infoBoxOutput('visopercinfo', width = 6),
+                         infoBoxOutput('visoespinfo', width = 6),
+                         infoBoxOutput('constructinfo', width = 6),
+                         infoBoxOutput('ffeeinfo', width = 6)
+                  )
+                ),
+                br(),
+                
+              )
+      )
+    )
+  )
+)
+

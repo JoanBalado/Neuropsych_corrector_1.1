@@ -1,0 +1,326 @@
+---
+title: |
+  ![](www/logo.png){width=400px height=110px align=center} 
+ 
+ 
+   <center>Exploración Neuropsicológica</center> 
+author: "`r params$neuropsicologa`"
+date: "`r format(params$date, '%d-%m-%y')`"
+output: 
+  html_document:
+    theme: paper
+params:
+  plots: NA
+  date: NA
+  neuropsicologa: NA
+  personal: NA
+  avl: NA
+  mem_visual: NA
+  lenguaje: NA
+  praxias: NA
+  viso: NA
+  visoconst: NA
+  ffee: NA
+  conducta: NA
+  comments_cond: NA
+  comments_leng: NA
+---
+
+<style type="text/css">
+
+h1.title {
+  font-size: 250%;
+  font-weight: bold;
+  text-align: center;
+  font-family: cambria; 
+  color: rgba(0, 68, 255, 1)
+}
+h4.author {
+  text-align: center;
+  font-family: cambria
+}
+h4.date {
+  text-align: center;
+  font-family: cambria
+}
+h3 {
+  font-size: 150%;
+  font-weight: bold;
+  font-family: cambria; 
+  color: rgba(0, 68, 255, 1)
+}
+
+h4 {
+  text-align: center;
+  font-family: cambria;
+  font-size: 125%;
+}
+
+
+</style>
+
+```{r include=FALSE}
+library(dplyr)
+library(kableExtra)
+library(ggplot2)
+library(gridExtra)
+library(repr)
+theme_aux <- theme(panel.background = element_blank(),
+                   text = element_text(size = 8, colour = 'black'),
+                   axis.line = element_line(colour = 'black'),
+                   legend.position = 'none', 
+                   axis.text.x = element_text(color = 'black', size = 8), 
+                   axis.text.y = element_text(color = 'black', size = 8))
+
+theme_aux2 <- theme(panel.background = element_blank(),
+                   text = element_text(size = 8, colour = 'black'),
+                   axis.line = element_line(colour = 'black'),
+                   legend.position = 'none', 
+                   axis.text.x = element_text(color = 'black', size = 8, angle = 25, hjust = 1, vjust = 1), 
+                   axis.text.y = element_text(color = 'black', size = 8))
+
+theme_aux3 <- theme(panel.background = element_blank(),
+                   text = element_text(size = 8, colour = 'black'),
+                   axis.line = element_line(colour = 'black'),
+                   legend.position = 'right', 
+                   axis.text.x = element_text(color = 'black', size = 8), 
+                   axis.text.y = element_text(color = 'black', size = 8))
+plots <- params[['plots']]
+```
+
+
+### 1.1 Datos del paciente
+
+```{r Datos Paciente, echo=FALSE, message=TRUE, warning=FALSE}
+params[['personal']]%>%
+  kbl(caption = 'Datos de interés del paciente')%>%
+  kable_classic_2(full_width = F, html_font = 'cambria')
+```
+
+### 1.2. Comentarios lenguaje espontáneo
+
+```{r lenguaje_esp, echo=FALSE, message=TRUE, warning=FALSE}
+if(nchar(params[['comments_leng']]) > 1){
+  writeLines(params[['comments_leng']])
+} else writeLines('No hay comentarios en relación al lenguaje espontáneo')
+
+```
+
+### 1.3. Conducta observada
+
+```{r Conducta, echo=FALSE, message=TRUE, warning=FALSE}
+cond <- data.frame('Observados' = params[['conducta']])
+
+if(nrow(cond)>0){
+  cond %>%
+    kbl(caption = 'Síntomas Neuropsiquiátricos')%>%
+    kable_classic_2(full_width = F, html_font = 'cambria')
+} 
+if(nchar(params[['comments_cond']]) > 1){
+  writeLines(params[['comments_cond']])
+}
+if(nchar(params[['comments_cond']]) <= 1 & nrow(cond)==0){
+  writeLines('No hay comentarios en relación a la conducta')
+}
+```
+
+### 2. Administración de la AVL:
+
+```{r AVL, echo=FALSE, message=TRUE, warning=FALSE}
+avl <- params[['avl']]
+
+if(nrow(na.omit(avl)) > 0){
+  avl$Punt.T <- round(avl$Punt.T)
+  avl$Test.Grupo <- factor(avl$Test.Grupo, levels = c('Puntuaciones Ensayos', 'Puntuaciones Derivadas'))
+  avl <- subset(avl, is.na(avl$Punt.D) == F)
+  avl$Punt.T <-  cell_spec(avl$Punt.T, color = ifelse(is.na(avl$Punt.T), 'black', ifelse(avl$Punt.T > 62, '#46D822',
+                                                                                         ifelse(avl$Punt.T < 38, 'red','black'))), 
+                           bold = ifelse(is.na(avl$Punt.T), F, ifelse(avl$Punt.T > 62 | avl$Punt.T < 38, T, F)))
+}
+row.names(avl) <- NULL
+if(nrow(na.omit(avl)) > 0){
+  avl%>%
+    select(Test, Punt.D, Punt.T)%>%
+    kbl(caption = 'Auditory Verbal Learning Test', escape = F, align = c('l', 'c', 'c'))%>%
+    kable_classic_2(full_width = F, html_font = 'cambria')%>%
+    column_spec(1, width = '7m')%>%
+    column_spec(2, width = '2cm')%>%
+    column_spec(3, width = '2cm')%>%
+    pack_rows(index = table(avl$Test.Grupo))
+
+} else {
+  writeLines('No se ha administrado la AVL')
+}
+```
+
+<br />
+
+```{r AVL_plot, echo=FALSE, message=TRUE, warning=FALSE, fig.align='center', fig.height = 6}
+# Plot 1
+avl <- params[['avl']]
+avl$Test <- factor(avl$Test, levels = unique(avl$Test[order(avl$Indice)]))
+avl_punt <- na.omit(subset(avl, avl$Test.Grupo == 'Puntuaciones Derivadas'))
+
+if(nrow(avl_punt)>0){
+  avl_punt$Punt.T <- as.numeric(paste(avl_punt$Punt.T))
+  avl_punt$Punt.T <- ifelse(avl_punt$Punt.T > 100, 100, avl_punt$Punt.T)
+}
+
+if(nrow(avl_punt)>0){
+  avl_plot1 <- ggplot(na.omit(avl_punt), aes(Test, Punt.T, group = 1))+
+    scale_y_continuous(limits = c(0,100), breaks = seq(0, 100, 10))+
+    geom_hline(yintercept = 37, linetype = 'dashed', size = 1, color = 'red')+
+    geom_hline(yintercept = 20, linetype = 'dashed', size = 1.3, color = 'red')+
+    geom_hline(yintercept = 63, linetype = 'dashed', size = 1, color = 'green')+
+    geom_hline(yintercept = 80, linetype = 'dashed', size = 1.3, color = 'green')+
+    geom_point(size = 2, color = 'blue')+geom_line(color = 'blue', size = 0.8)+
+    ylab('Puntuacion T') + xlab('')+
+    ggtitle('Puntuaciones Calculadas AVL')+
+    theme_aux2
+}
+
+# Plot 2
+avl_learn <- na.omit(subset(avl, avl$Test %in% c('A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6', 'A-7')))
+
+
+if(nrow(avl_learn)>0){
+  avl_learn$Punt.D <- as.numeric(paste(avl_learn$Punt.D))
+  avl_learn$Punt.T <- as.numeric(paste(avl_learn$Punt.T))
+  avl_learn$Punt.T <- ifelse(avl_learn$Punt.T > 100, 100, avl_learn$Punt.T)
+}
+
+
+if(nrow(avl_learn)>0){
+  avl_plot2 <- ggplot(na.omit(avl_learn), aes(Test, Punt.D, group = 1))+
+    scale_y_continuous(limits = c(0,15), breaks = seq(0, 15, 1))+
+    geom_point(size = 2, color = 'blue')+geom_line(color = 'blue', size = 0.8)+
+    ylab('Número de palabras recordadas') + xlab('')+
+    ggtitle('Curva de Aprendizaje AVL')+
+    theme_aux
+  
+  avl_plot3 <- ggplot(na.omit(avl_learn), aes(Test, Punt.T, group = 1))+
+    scale_y_continuous(limits = c(0,100), breaks = seq(0, 100, 10))+
+    geom_hline(yintercept = 37, linetype = 'dashed', size = 1, color = 'red')+
+    geom_hline(yintercept = 20, linetype = 'dashed', size = 1.3, color = 'red')+
+    geom_hline(yintercept = 63, linetype = 'dashed', size = 1, color = 'green')+
+    geom_hline(yintercept = 80, linetype = 'dashed', size = 1.3, color = 'green')+
+    geom_point(size = 2, color = 'blue')+geom_line(color = 'blue', size = 0.8)+
+    ylab('Puntuacion T') + xlab('')+
+    ggtitle('Curva de Aprendizaje Ajustada AVL')+
+    theme_aux
+}
+
+if(exists('avl_plot3') & exists('avl_plot1') & plots == 'Si'){
+  suppressMessages(grid.arrange(avl_plot1, 
+                                arrangeGrob(avl_plot2, avl_plot3, ncol = 2), 
+                                nrow = 2))
+}
+```
+
+  
+### 3. Otros tests administrados: 
+
+``` {r otros test, echo=FALSE, message=TRUE, warning=FALSE}
+visoconst <- params[['visoconst']]
+fcr_mem <- params[['mem_visual']]
+lenguaje <- params[['lenguaje']]
+viso <- params[['viso']]
+praxias <- params[['praxias']]
+ffee <- params[['ffee']]
+
+otros_tests <- data.frame(rbind(visoconst, 
+                                fcr_mem, 
+                                lenguaje, 
+                                viso, 
+                                praxias, 
+                                ffee), row.names = NULL)
+otros_tests$Test.Grupo <- factor(otros_tests$Test.Grupo, levels = c('Reloj a la orden',
+                                                             'Cubos WAIS-III',
+                                                             'Figura compleja de Rey',
+                                                             'Denominacion', 
+                                                             'Comprension', 
+                                                             'Repeticion',
+                                                             'Fluencias Verbales',
+                                                             'Jaeger',
+                                                             'Funciones Visoperceptivas', 
+                                                             'Funciones Visoespaciales', 
+                                                             'VOSP', 
+                                                             'Praxias Ideomotoras', 
+                                                             'Digitos WAIS-Span', 
+                                                             'Stroop', 
+                                                             'Trail Making Test', 
+                                                             'Prueba de las As',
+                                                             'Otros Tests FFEE', 
+                                                             'Tower of London'
+                                                             ))
+otros_tests <- subset(otros_tests, is.na(otros_tests$Punt.D) == F)
+
+if(nrow(na.omit(otros_tests)) > 0){
+  otros_tests$Punt.T <- round(otros_tests$Punt.T)
+  otros_tests$Punt.T <-  cell_spec(otros_tests$Punt.T, color = ifelse(is.na(otros_tests$Punt.T), 'black',
+                                                                      ifelse(otros_tests$Punt.T > 62, '#46D822', ifelse(otros_tests$Punt.T < 38, 'red', 'black'))),
+                         bold = ifelse(is.na(otros_tests$Punt.T), F, ifelse(otros_tests$Punt.T > 62 | otros_tests$Punt.T < 38, T, F)))
+}
+
+
+row.names(otros_tests) <- NULL
+if(nrow(na.omit(otros_tests)) > 0){
+  otros_tests%>%
+    select(Test, Punt.D, Punt.T)%>%
+    kbl(caption = 'Tests Administrados', escape = F, align = c('l', 'c', 'c'))%>%
+    kable_classic_2(full_width = F, html_font = 'cambria')%>%
+    column_spec(1, width = '6m')%>%
+    column_spec(2, width = '2cm')%>%
+    column_spec(3, width = '2cm')%>%
+    pack_rows(index = table(otros_tests$Test.Grupo)[table(otros_tests$Test.Grupo) > 0])
+} else {
+  writeLines('No se han administrado otros tests')
+}
+```
+
+
+<br />
+
+``` {r otros plot, echo=FALSE, message=TRUE, warning=FALSE, fig.align='center', fig.height = 10, fig.width = 8}
+
+otros_tests <- data.frame(rbind(avl,
+                                visoconst, 
+                                fcr_mem, 
+                                lenguaje, 
+                                viso, 
+                                praxias, 
+                                ffee), row.names = NULL)
+
+otros_tests <- subset(otros_tests, is.na(otros_tests$Punt.T) == F & otros_tests$Test.Grupo != 'Puntuaciones Ensayos')
+
+if(nrow(otros_tests)>0){
+  otros_tests$Funcion <- factor(otros_tests$Funcion, levels = c('Memoria Audioverbal', 'Memoria Visual', 'Funciones Visoconstructivas', 'Lenguaje', 
+                                                                'Funciones Visoperceptivas', 'Funciones Visoespaciales', 'Praxias Ideomotoras', 'FFEE'))
+  otros_tests$Test <- factor(otros_tests$Test, levels = unique(otros_tests$Test[order(otros_tests$Funcion, otros_tests$Indice, decreasing = T)]))
+  otros_tests$Test_n <- as.numeric(otros_tests$Test)
+  otros_tests$Punt.T <- as.numeric(paste(otros_tests$Punt.T))
+  otros_tests$Punt.T <- ifelse(otros_tests$Punt.T > 100, 100, otros_tests$Punt.T)
+  
+}
+
+if(nrow(otros_tests)>0){
+  otros_plot <- ggplot(na.omit(otros_tests))+
+    geom_rect(aes(xmin=Test_n-0.5, xmax=Test_n+0.5, ymin = 0, ymax = 100, fill = Funcion), alpha = 0.4, stat = 'identity') +
+    geom_point(aes(Test_n, Punt.T),size = 2, color = 'blue')+geom_line(aes(Test_n, Punt.T, group = 1), color = 'blue', size = 0.8)+
+    scale_y_continuous(limits = c(0,100), breaks = seq(0, 100, 10))+
+    scale_x_continuous(breaks = otros_tests$Test_n, labels = otros_tests$Test)+
+    geom_hline(yintercept = 37, linetype = 'dashed', size = 1, color = 'red')+
+    geom_hline(yintercept = 20, linetype = 'dashed', size = 1.3, color = 'red')+
+    geom_hline(yintercept = 62, linetype = 'dashed', size = 1, color = 'green')+
+    geom_hline(yintercept = 80, linetype = 'dashed', size = 1.3, color = 'green')+
+    scale_fill_brewer(palette = 'Dark2')+
+    coord_flip()+
+    ylab('Puntuacion T') + xlab('')+
+    ggtitle('Perfil Neuropsicológico')+
+    theme_aux3
+}
+
+if(exists('otros_plot') & plots == 'Si'){
+  suppressMessages(print(otros_plot))
+}
+```
