@@ -34,7 +34,7 @@ RStudio.
 
 ## 1.3. Installation
 
-Go to the R CRAN and download/install R-base (https://cran.r-project.org/bin/windows/base/old/). Just execute the binary. Then go the RStudio website and download the RStudio Desktop IDE (https://www.rstudio.com/products/rstudio/download). 
+Go to the R CRAN and download/install R-base (https://cran.r-project.org/bin/windows/base/old/). Just execute the binary. Then go to the RStudio website and download the RStudio Desktop IDE (https://www.rstudio.com/products/rstudio/download). 
 Then, pull this repo and use the '/installation/R config.R' script to configure your workspace. This script just downloads and configure the dependencies. 
 
 # 2. Usage
